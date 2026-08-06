@@ -90,9 +90,38 @@ The test suite runs the design doc's worked artifact verbatim against the
 real published `nano-binary-search` — pre → post, the complexity bound via
 an instrumented comparator, and a deterministic hazard witness.
 
+## Call-site guards (`pre:` claims at runtime)
+
+`invariants-sidecar/guards.js` turns check-bearing `pre:` claims into
+[tape-six-invariant](https://github.com/uhop/tape-six-invariant) guards — a
+counted assertion when a tape-six run exercises the call site, the
+configured absent behavior otherwise. Subpath-only: importing it requires
+`tape-six-invariant`; the package core stays dependency-free.
+
+```js
+import {guardsFromSidecar} from 'invariants-sidecar/guards.js';
+
+const guards = guardsFromSidecar(sidecar); // {partitioned: (args…) => void}
+
+const sortedInsert = (arr, value) => {
+  const lessFn = x => x < value;
+  guards.partitioned(arr, lessFn, 0, arr.length); // the pattern's obligation, discharged
+  const i = binarySearch(arr, lessFn);
+  arr.splice(i, 0, value);
+  return i;
+};
+```
+
+By default a guard honors "assumed, never checked at runtime": the predicate
+runs only when a tape-six host was present at load (`hasHost`). Pass
+`{always: true}` to pay for it in production too — pair with
+`setAbsentBehavior(throwOnFail)`.
+
 ## Release notes
 
 - 0.0.1 — the static-land core (derivation-lattice completer,
-  law/consistency test generator) + the sidecar parser/compiler, with the
+  law/consistency test generator), the sidecar parser/compiler with the
   worked binary-search artifact verified end-to-end against the real
-  library.
+  library, a drafted family sidecar for the ten sibling exports (all claims
+  surviving refutation), and call-site guards wiring `pre:` claims through
+  tape-six-invariant.
