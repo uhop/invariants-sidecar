@@ -71,6 +71,21 @@ parameter (`std::` container semantics).
   `equalRange` returns exactly `[lowerBound, upperBound]`.
 - `membership-trichotomy`: `includes ⟺ indexOf >= 0 ⟺ count > 0` — the
   three membership spellings agree.
+
+  ```json axiom law:membership-trichotomy
+  {
+    "atoms": {
+      "incl": "includes(sortedArray, value, less, l, r)",
+      "idxFound": "indexOf(sortedArray, value, less, l, r) >= 0",
+      "cntPos": "count(sortedArray, value, less, l, r) > 0"
+    },
+    "formulas": [
+      ["iff", "incl", "idxFound"],
+      ["iff", "incl", "cntPos"]
+    ]
+  }
+  ```
+
 - `window-is-equivalence`: inside `equalRange`'s window every element is
   equivalent to `value` (neither `less`); outside it none is.
 
@@ -89,7 +104,22 @@ parameter (`std::` container semantics).
 
 - `pure-queries`: `lowerBound`, `upperBound`, `indexOf`, `lastIndexOf`,
   `includes`, `equalRange`, and `count` mutate nothing and call nothing but
-  `less`; deterministic while `less` is.
+  `less`; deterministic while `less` is; and never throw on inputs
+  satisfying `sorted` + `consistent-less` (totality is conditional on the
+  preconditions, like every claim here).
+
+  ```json flags effects:pure-queries
+  {
+    "lowerBound": ["pure", "total"],
+    "upperBound": ["pure", "total"],
+    "indexOf": ["pure", "total"],
+    "lastIndexOf": ["pure", "total"],
+    "includes": ["pure", "total"],
+    "equalRange": ["pure", "total"],
+    "count": ["pure", "total"]
+  }
+  ```
+
 - `insert-one-splice`: `insert` performs one `splice` at `upperBound` —
   the array grows by exactly one, stays sorted, and the new element lands
   **after** every existing equivalent (stable append); returns the index.

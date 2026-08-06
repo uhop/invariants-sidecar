@@ -117,6 +117,27 @@ runs only when a tape-six host was present at load (`hasHost`). Pass
 `{always: true}` to pay for it in production too — pair with
 `setAbsentBehavior(throwOnFail)`.
 
+## The oracle bridge (`law:`/`effects:` claims as rewrite licenses)
+
+`src/oracle.js` is the third consumer: blessed claims become
+[apodict](../apodict) oracle inputs. A `law:` claim may carry a
+` ```json axiom ` block (placeholder atoms + §3 formulas);
+`oracleInputsFromSidecar` extracts them and `instantiateAxioms` renames
+placeholders to the consumer's query atoms, yielding assume-ready entries
+whose `name`/`source` flow into the law trail of any rewrite the axiom
+licenses. An `effects:` claim may carry a ` ```json flags ` block
+(per-export `pure`/`total`); `declareFromSidecar` maps query symbols to
+those flags. The bridge emits wire shapes only — it depends on nothing.
+
+Measured behaviors worth knowing (both in the tests): the oracle **refuses**
+a law-licensed rewrite until the sidecar also vouches totality — erasing a
+read of an atom that might throw demands `total`, so the licensing
+discipline reaches across the bridge; and definitional equations lift into
+an equal-cost substitution plateau (~5k nodes for a two-atom conjunction,
+38–96 s) that best-first must drain before the repeat-penalized collapse —
+the full collapse was demonstrated once and recorded rather than
+suite-pinned.
+
 ## Release notes
 
 - 0.0.1 — the static-land core (derivation-lattice completer,

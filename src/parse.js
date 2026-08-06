@@ -72,12 +72,20 @@ export const parseSidecar = text => {
       }
       if (i === lines.length) fail('unterminated code fence', opened);
       const source = body.join('\n');
-      const checkMatch = /^(\S+)\s+check\s+(\w+):(\S+)$/.exec(info);
-      if (checkMatch) {
-        const [, lang, checkKind, checkName] = checkMatch;
-        const claim = byKey.get(checkKind + ':' + checkName);
-        if (!claim) fail(`check block for unknown claim ${checkKind}:${checkName}`, opened);
-        claim.check = {lang, source};
+      const roleMatch = /^(\S+)\s+(check|axiom|flags)\s+(\w+):(\S+)$/.exec(info);
+      if (roleMatch) {
+        const [, lang, role, roleKind, roleName] = roleMatch;
+        const claim = byKey.get(roleKind + ':' + roleName);
+        if (!claim) fail(`${role} block for unknown claim ${roleKind}:${roleName}`, opened);
+        if (role === 'check') claim.check = {lang, source};
+        else {
+          if (lang !== 'json') fail(`${role} blocks must be json`, opened);
+          try {
+            claim[role] = JSON.parse(source);
+          } catch (e) {
+            fail(`bad ${role} JSON: ${e.message}`, opened);
+          }
+        }
       } else if (pattern && patternField === 'replacement') {
         pattern.replacement = {lang: info || 'js', source};
       }
