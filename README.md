@@ -59,7 +59,40 @@ derivation; paths that avoid a corrupted method are what refute it.
 Caveat: lifted values default to `of`-lifting, which cannot reach values
 like a `Nothing`-shaped `T<fn>`; supply `arbK`/`arbUF` to cover them.
 
+## The sidecar format
+
+`parseSidecar(text)` reads the moonshot §6.5 artifact format — frontmatter
+(`package`/`binds`/`export`), claim sections (Preconditions,
+Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with
+backtick-named list items, and ` ```js check kind:name ` fenced blocks
+binding executable checks to claims by name — into **inert data**: the
+parser never evaluates anything. `compileChecks(sidecar)` is the explicit
+trust step (compiles, still doesn't invoke); `lawTestsFromSidecar` bridges
+a Laws section (`- implements:` + custom `law:` checks) to the static-land
+law suite.
+
+```js
+import {parseSidecar, compileChecks} from 'invariants-sidecar';
+
+const sidecar = parseSidecar(readFileSync('binary-search.sidecar.md', 'utf8'));
+const checks = compileChecks(sidecar);
+
+test('sidecar claims hold', async t => {
+  await t.prop([arbCase], ({sorted, lessFn}) => {
+    if (!checks['pre:partitioned'](sorted, lessFn, 0, sorted.length)) return false;
+    const i = binarySearch(sorted, lessFn);
+    return checks['post:partition-point'](i, sorted, lessFn, 0, sorted.length);
+  });
+});
+```
+
+The test suite runs the design doc's worked artifact verbatim against the
+real published `nano-binary-search` — pre → post, the complexity bound via
+an instrumented comparator, and a deterministic hazard witness.
+
 ## Release notes
 
-- 0.0.1 — the static-land core: derivation-lattice completer,
-  law/consistency test generator, Maybe fixture end-to-end.
+- 0.0.1 — the static-land core (derivation-lattice completer,
+  law/consistency test generator) + the sidecar parser/compiler, with the
+  worked binary-search artifact verified end-to-end against the real
+  library.

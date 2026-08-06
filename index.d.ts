@@ -9,3 +9,6 @@ export {LAWS, lawsFor} from './src/laws.js';
 export type {Law, ArgKind} from './src/laws.js';
 export {makeLawTests, makeConsistencyTests, runLaws} from './src/generate.js';
 export type {ArbitraryLike, GenerateOptions, LawTest} from './src/generate.js';
+export {parseSidecar} from './src/parse.js';
+export type {Sidecar, Claim} from './src/parse.js';
+export {compileCheck, compileChecks, lawTestsFromSidecar} from './src/compile.js';

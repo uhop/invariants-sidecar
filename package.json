@@ -22,9 +22,9 @@
   ],
   "author": "Eugene Lazutkin <eugene.lazutkin@gmail.com> (https://lazutkin.com/)",
   "license": "BSD-3-Clause",
-  "dependencies": {},
   "devDependencies": {
     "fast-check": "^4.9.0",
+    "nano-binary-search": "^1.1.0",
     "prettier": "^3.6.2",
     "tape-six": "^1.16.2",
     "tape-six-fast-check": "^1.0.0"

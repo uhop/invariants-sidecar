@@ -104,3 +104,17 @@ test('laws are selected by available methods and requested typeclasses', t => {
   const monadOnly = makeLawTests(complete(Maybe).module, {...opts, typeclasses: ['Monad']});
   t.equal(monadOnly.length, 2);
 });
+
+test('a sidecar drives the whole law suite through the bridge', async t => {
+  const {readFileSync} = await import('node:fs');
+  const {parseSidecar} = await import('../src/parse.js');
+  const {lawTestsFromSidecar} = await import('../src/compile.js');
+  const sidecar = parseSidecar(
+    readFileSync(new URL('./fixtures/maybe-sidecar.md', import.meta.url), 'utf8')
+  );
+  t.deepEqual(sidecar.implements, ['Setoid', 'Functor', 'Applicative', 'Chain', 'Monad']);
+  const tests = lawTestsFromSidecar(sidecar, {...Maybe, nothing: NOTHING}, opts);
+  // 11 laws + 2 map-consistency obligations + 1 custom law
+  t.equal(tests.length, 14);
+  await runLaws(t, tests);
+});
