@@ -23,7 +23,6 @@
   "author": "Eugene Lazutkin <eugene.lazutkin@gmail.com> (https://lazutkin.com/)",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "apodict": "file:../apodict",
     "fast-check": "^4.9.0",
     "nano-binary-search": "^1.1.0",
     "prettier": "^3.6.2",

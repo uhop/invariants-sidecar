@@ -1,9 +1,32 @@
 import {readFileSync} from 'node:fs';
 import test from 'tape-six';
-import {equivalent, simplify, liftAxioms, parseBank, resolveBanks} from 'apodict';
 
 import {parseSidecar} from '../src/parse.js';
 import {oracleInputsFromSidecar, instantiateAxioms, declareFromSidecar} from '../src/oracle.js';
+
+// apodict is a private sibling, not a dependency: load it dynamically —
+// installed package first (future-proof), the fleet-layout sibling second —
+// and skip the integration tests cleanly when neither resolves (CI-safe).
+// NO_APODICT=1 forces the skip path for testing it.
+const loadApodict = async () => {
+  if (process.env.NO_APODICT) return null;
+  const candidates = [
+    ['apodict', () => new URL('./rules/', import.meta.resolve('apodict'))],
+    [
+      new URL('../../apodict/index.js', import.meta.url).href,
+      () => new URL('../../apodict/rules/', import.meta.url)
+    ]
+  ];
+  for (const [spec, rulesBase] of candidates) {
+    try {
+      return {oracle: await import(spec), rulesBase: rulesBase()};
+    } catch {}
+  }
+  return null;
+};
+
+const apodict = await loadApodict();
+const integration = apodict ? test : test.skip;
 
 const sidecar = parseSidecar(
   readFileSync(new URL('../sidecars/nano-binary-search-family.md', import.meta.url), 'utf8')
@@ -11,9 +34,7 @@ const sidecar = parseSidecar(
 const inputs = oracleInputsFromSidecar(sidecar);
 
 const apodictRules = name =>
-  parseBank(
-    readFileSync(new URL(`../node_modules/apodict/rules/${name}`, import.meta.url), 'utf8')
-  );
+  apodict.oracle.parseBank(readFileSync(new URL(name, apodict.rulesBase), 'utf8'));
 
 test('the bridge extracts axioms and declares with provenance', t => {
   t.equal(inputs.axioms.length, 1);
@@ -52,7 +73,8 @@ test('declareFromSidecar maps query symbols to sidecar flags', t => {
 // a redundant double-spelled membership check collapses because the
 // library's own blessed law licenses it, with the sidecar cited in the
 // law trail.
-test('a sidecar law does real oracle work with provenance in the trail', t => {
+integration('a sidecar law does real oracle work with provenance in the trail', t => {
+  const {equivalent, simplify, liftAxioms, resolveBanks} = apodict.oracle;
   const assume = instantiateAxioms(inputs.axioms, {
     incl: 'hasIt',
     idxFound: 'foundIdx',
