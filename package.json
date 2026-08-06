@@ -1,0 +1,32 @@
+{
+  "name": "invariants-sidecar",
+  "version": "0.0.1",
+  "description": "Library-declared invariants as verified data: the static-land core — a dictionary completer and a law/consistency property-test generator.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "tape6 --flags FO",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write ."
+  },
+  "keywords": [
+    "static-land",
+    "laws",
+    "property-testing",
+    "invariants",
+    "sidecar"
+  ],
+  "author": "Eugene Lazutkin <eugene.lazutkin@gmail.com> (https://lazutkin.com/)",
+  "license": "BSD-3-Clause",
+  "dependencies": {},
+  "devDependencies": {
+    "fast-check": "^4.9.0",
+    "prettier": "^3.6.2",
+    "tape-six": "^1.16.2",
+    "tape-six-fast-check": "^1.0.0"
+  }
+}
