@@ -11,9 +11,10 @@ const SECTIONS = {
   Laws: 'law'
 };
 
-// greedy qualifier + `):`-anchored close so nested parens (`O(n)`) survive;
-// no \s* next to .* — single-quantifier forms stay linear (js/polynomial-redos)
-const CLAIM_RE = /^- `([^`]+)`(?: \((.+)\))?:(.*)$/;
+// the `):` close is found by lastIndexOf, not a second quantifier, so nested
+// parens (`O(n)`) survive and matching stays linear (js/polynomial-redos);
+// no \s* next to .* elsewhere either — single-quantifier forms stay linear
+const CLAIM_RE = /^- `([^`]+)`(.*)$/;
 const IMPLEMENTS_RE = /^- implements:(.+)$/;
 const FENCE_RE = /^(\s*)```(.*)$/;
 const PATTERN_FIELDS =
@@ -149,8 +150,15 @@ export const parseSidecar = text => {
       }
       const claim = CLAIM_RE.exec(line);
       if (claim) {
-        current = addClaim({kind, name: claim[1], prose: claim[3].trim()});
-        if (claim[2]) current.qualifiers = claim[2];
+        const tail = claim[2];
+        if (tail.startsWith(':')) {
+          current = addClaim({kind, name: claim[1], prose: tail.slice(1).trim()});
+          continue;
+        }
+        const cut = tail.startsWith(' (') ? tail.lastIndexOf('):') : -1;
+        if (cut <= 2) fail(`claim head must close with \`:\`: ${line.trim()}`, i);
+        current = addClaim({kind, name: claim[1], prose: tail.slice(cut + 2).trim()});
+        current.qualifiers = tail.slice(2, cut);
         continue;
       }
       if (current && /^\s+\S/.test(line)) {

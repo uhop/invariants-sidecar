@@ -72,6 +72,11 @@ test('parse errors are loud and located', t => {
   );
   t.throws(
     () =>
+      parseSidecar('---\npackage: x\n---\n# f\n\n## Preconditions\n\n- `p` (total) — scoped: text'),
+    /claim head must close/
+  );
+  t.throws(
+    () =>
       parseSidecar(
         '---\npackage: x\n---\n# f\n\n## Preconditions\n\n```js check pre:ghost\n() => true\n```'
       ),
