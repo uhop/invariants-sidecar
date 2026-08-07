@@ -4,7 +4,7 @@
 // effects: claims become oracle inputs — assume entries with provenance
 // that liftAxioms turns into cited rewrite rules, and per-export purity
 // flags for the consumer's declare. Emits wire shapes only; this module
-// depends on nothing, apodict included.
+// depends on nothing, apodictum included.
 export const oracleInputsFromSidecar = sidecar => {
   const pkg = sidecar.frontmatter.package || sidecar.name;
   const binds = sidecar.frontmatter.binds || '';
@@ -44,7 +44,7 @@ const rename = (formula, binding, axiom) => {
 };
 
 // Placeholder atoms → the consumer's query atom names; returns assume-ready
-// entries ({formula, name, source} — apodict's axiom-entry shape, so the
+// entries ({formula, name, source} — apodictum's axiom-entry shape, so the
 // provenance lands in the law trail of any rewrite the axiom licenses).
 export const instantiateAxioms = (axioms, binding) =>
   axioms.flatMap(axiom =>

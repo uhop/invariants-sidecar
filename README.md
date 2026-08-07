@@ -15,12 +15,19 @@ The design lineage: GHC `{-# RULES #-}` proved libraries can ship rewrite
 rules — and that trusting them unchecked is the failure mode. Here every
 claim compiles to a property test the author runs in CI: **claims are
 verified, never trusted.** The wider sidecar vocabulary (`pre:`, `post:`,
-`effects:`, `complexity:`, `pattern:`, `hazard:`) is specified in apodict's
+`effects:`, `complexity:`, `pattern:`, `hazard:`) is specified in apodictum's
 `dev-docs/moonshot-transformation-assistant.md` §6; this package builds the
 `law:`/`derivation:` slice first because both halves have ecosystem prior
 art and one fixture exercises the whole pipeline.
 
 Status: **experiment**.
+
+Full documentation is in the
+**[wiki](https://github.com/uhop/invariants-sidecar/wiki)** — browse the
+[index](https://github.com/uhop/invariants-sidecar/wiki/Home), or
+[search it](https://uhop.github.io/wiki-search/app/?wiki=uhop/invariants-sidecar)
+by name; `llms.txt` / `llms-full.txt` ship in the package for machine
+consumption.
 
 ## Install
 
@@ -122,8 +129,8 @@ runs only when a tape-six host was present at load (`hasHost`). Pass
 
 ## The oracle bridge (`law:`/`effects:` claims as rewrite licenses)
 
-`src/oracle.js` is the third consumer: blessed claims become
-[apodict](../apodict) oracle inputs (npm name: `apodictum`). The oracle is
+`src/oracle.js` is the third consumer: blessed claims become `apodictum`
+oracle inputs. The oracle is
 **not a dependency** — the bridge emits plain wire shapes; the integration
 test loads it dynamically (the `apodictum` package when installed, then the
 fleet-layout sibling) and skips cleanly when neither resolves, so
@@ -147,9 +154,7 @@ suite-pinned.
 
 ## Release notes
 
-- 0.0.1 — the static-land core (derivation-lattice completer,
-  law/consistency test generator), the sidecar parser/compiler with the
-  worked binary-search artifact verified end-to-end against the real
-  library, a drafted family sidecar for the ten sibling exports (all claims
-  surviving refutation), and call-site guards wiring `pre:` claims through
-  tape-six-invariant.
+- **0.0.1** — Initial release.
+
+The full release notes are in the wiki:
+[Release notes](https://github.com/uhop/invariants-sidecar/wiki/Release-notes).

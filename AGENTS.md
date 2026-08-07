@@ -1,7 +1,8 @@
 # AGENTS.md
 
 Experiment: the invariants-sidecar static-land core. Design doc:
-apodict's `dev-docs/moonshot-transformation-assistant.md` §6/§6.5; queue:
+apodictum's `dev-docs/moonshot-transformation-assistant.md` §6/§6.5
+(fleet checkout: `../apodict`); queue:
 the vault's `projects/invariants-sidecar/queue.md`. For project structure
 and data flow see [ARCHITECTURE.md](./ARCHITECTURE.md).
 

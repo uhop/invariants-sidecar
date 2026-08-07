@@ -1,6 +1,6 @@
 # invariants-sidecar — full API reference
 
-> Library-declared invariants as verified data. Two halves: the static-land core (dictionary completer + law/consistency property-test generator for tape-six-fast-check's `t.prop()`) and the sidecar-artifact toolchain (parser → compiler → three consumers: property tests, call-site guards, apodict oracle bridge). Zero runtime dependencies. ES modules; types and docs live in hand-written `.d.ts` sidecars.
+> Library-declared invariants as verified data. Two halves: the static-land core (dictionary completer + law/consistency property-test generator for tape-six-fast-check's `t.prop()`) and the sidecar-artifact toolchain (parser → compiler → three consumers: property tests, call-site guards, apodictum oracle bridge). Zero runtime dependencies. ES modules; types and docs live in hand-written `.d.ts` sidecars.
 
 Install:
 
@@ -138,7 +138,7 @@ function guardsFromSidecar(sidecar: Sidecar, opts?: GuardOptions): Record<string
 
 One guard per check-bearing `pre:` claim, keyed by claim name; each takes the check's own parameters and routes through tape-six-invariant's `check()` — a counted assertion when a tape-six run exercises the call site, the configured absent behavior otherwise. Importing `invariants-sidecar/guards.js` requires `tape-six-invariant`; the package core stays dependency-free. Pair `{always: true}` with `setAbsentBehavior(throwOnFail)` to pay for checks in production.
 
-## src/oracle.js — apodict oracle bridge
+## src/oracle.js — apodictum oracle bridge
 
 ```ts
 interface AxiomTemplate {
@@ -146,7 +146,7 @@ interface AxiomTemplate {
   name: string;
   source: string;
   atoms: Record<string, string>; // placeholder atoms
-  formulas: unknown[]; // apodict §3 formulas
+  formulas: unknown[]; // apodictum §3 formulas
 }
 
 interface DeclareTemplate {
@@ -168,7 +168,7 @@ function instantiateAxioms(
 function declareFromSidecar(declares: DeclareTemplate[], symbolExports: Record<string, string>): Record<string, string[]>;
 ```
 
-Blessed claims become oracle inputs: a `law:` claim may carry a ```` ```json axiom ```` block, an `effects:` claim a ```` ```json flags ```` block. `instantiateAxioms` renames placeholder atoms to the consumer's query atoms (throws on an unbound placeholder); `name`/`source` flow into the law trail of any rewrite the axiom licenses. The bridge emits plain wire shapes and depends on nothing — the oracle (npm: `apodictum`) is not a dependency. Measured behavior: the oracle refuses a law-licensed rewrite until the sidecar also vouches `total` for the erased read.
+Blessed claims become oracle inputs: a `law:` claim may carry a ```` ```json axiom ```` block, an `effects:` claim a ```` ```json flags ```` block. `instantiateAxioms` renames placeholder atoms to the consumer's query atoms (throws on an unbound placeholder); `name`/`source` flow into the law trail of any rewrite the axiom licenses. The bridge emits plain wire shapes and depends on nothing — the `apodictum` oracle is not a dependency. Measured behavior: the oracle refuses a law-licensed rewrite until the sidecar also vouches `total` for the erased read.
 
 ## Notes
 

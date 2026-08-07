@@ -18,7 +18,7 @@ src/
 ├── parse.js         # parseSidecar — moonshot §6.5 markdown → inert data, never evaluates
 ├── compile.js       # compileCheck / compileChecks — the explicit trust step; lawTestsFromSidecar
 ├── guards.js        # guardsFromSidecar — pre: claims as tape-six-invariant call-site guards (subpath-only)
-└── oracle.js        # oracleInputsFromSidecar / instantiateAxioms / declareFromSidecar — apodict wire shapes
+└── oracle.js        # oracleInputsFromSidecar / instantiateAxioms / declareFromSidecar — apodictum wire shapes
 sidecars/            # real artifacts (nano-binary-search family) — data, not shipped code
 tests/               # tape-six suite; fixtures hold worked sidecar artifacts
 ```
@@ -36,7 +36,7 @@ Sidecar {frontmatter, name, description, claims[], implements?}
   │         └─ complete(module) + implements: → law + consistency LawTest[]
   ├─ guardsFromSidecar   — pre: claims → runtime guards (tape-six-invariant)
   └─ oracleInputsFromSidecar — law: axiom blocks + effects: flags blocks
-       └─ instantiateAxioms / declareFromSidecar → apodict query inputs
+       └─ instantiateAxioms / declareFromSidecar → apodictum query inputs
 ```
 
 The static-land half stands alone: `complete()` derives every missing

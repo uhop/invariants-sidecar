@@ -1,6 +1,6 @@
 # invariants-sidecar
 
-> Library-declared invariants as verified data: a static-land dictionary completer (derive `map`, `ap`, … from a minimal base) plus a law/consistency property-test generator targeting tape-six-fast-check's `t.prop()`, and a sidecar-artifact toolchain — parser (inert data), check compiler (explicit trust step), call-site guards, apodict oracle bridge. Zero runtime dependencies; claims are verified, never trusted.
+> Library-declared invariants as verified data: a static-land dictionary completer (derive `map`, `ap`, … from a minimal base) plus a law/consistency property-test generator targeting tape-six-fast-check's `t.prop()`, and a sidecar-artifact toolchain — parser (inert data), check compiler (explicit trust step), call-site guards, apodictum oracle bridge. Zero runtime dependencies; claims are verified, never trusted.
 
 ## Install
 
@@ -50,7 +50,7 @@ const checks = compileChecks(sidecar); // explicit trust step — compiles, does
 - `compileCheck(check)` / `compileChecks(sidecar)` — checks as callables, keyed `kind:name`.
 - `lawTestsFromSidecar(sidecar, module, opts)` — a Laws section (`implements:` + custom `law:` checks) as a law suite.
 - `guardsFromSidecar(sidecar, opts?)` (subpath `invariants-sidecar/guards.js`, requires tape-six-invariant) — check-bearing `pre:` claims as call-site guards.
-- `oracleInputsFromSidecar(sidecar)` / `instantiateAxioms(axioms, binding)` / `declareFromSidecar(declares, symbolExports)` — blessed `law:`/`effects:` claims as apodict oracle wire shapes (npm: `apodictum`; not a dependency).
+- `oracleInputsFromSidecar(sidecar)` / `instantiateAxioms(axioms, binding)` / `declareFromSidecar(declares, symbolExports)` — blessed `law:`/`effects:` claims as `apodictum` oracle wire shapes (not a dependency).
 
 ## Notes
 
