@@ -20,7 +20,7 @@ verified, never trusted.** The wider sidecar vocabulary (`pre:`, `post:`,
 `law:`/`derivation:` slice first because both halves have ecosystem prior
 art and one fixture exercises the whole pipeline.
 
-Status: **experiment** (unpublished).
+Status: **experiment**.
 
 ## Install
 
