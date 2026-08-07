@@ -1,0 +1,177 @@
+# invariants-sidecar — full API reference
+
+> Library-declared invariants as verified data. Two halves: the static-land core (dictionary completer + law/consistency property-test generator for tape-six-fast-check's `t.prop()`) and the sidecar-artifact toolchain (parser → compiler → three consumers: property tests, call-site guards, apodict oracle bridge). Zero runtime dependencies. ES modules; types and docs live in hand-written `.d.ts` sidecars.
+
+Install:
+
+npm install --save-dev invariants-sidecar tape-six tape-six-fast-check fast-check
+
+Root export (`invariants-sidecar`) re-exports everything below except guards, which is subpath-only. Subpaths mirror `src/` (`invariants-sidecar/guards.js` etc.).
+
+## src/static-land.js — dictionary completer
+
+```ts
+type StaticLandModule = Record<string, (...args: any[]) => any>;
+
+interface Derivation {
+  method: string; // method this row builds
+  needs: string[]; // methods it builds from
+  derive: (T: StaticLandModule) => (...args: any[]) => any;
+}
+
+interface ConsistencyObligation {
+  method: string; // hand-provided derivable method
+  needs: string[]; // base methods of the derivation it must agree with
+  derivedFn: (...args: any[]) => any;
+}
+
+interface Completion {
+  module: StaticLandModule; // input plus every derivable method, to fixpoint
+  derived: Record<string, string[]>; // provenance: derived method -> base methods
+  consistency: ConsistencyObligation[]; // one per hand-provided method per applicable derivation
+}
+
+const DERIVATIONS: Derivation[]; // the derivation lattice per the static-land spec
+
+function complete(module: StaticLandModule): Completion;
+```
+
+`complete()` never overwrites a provided method. Consistency obligations implement static-land's consistency clause: a hand-provided derivable method owes agreement with every applicable derivation.
+
+## src/laws.js — law records
+
+```ts
+// u/v/w — module values, a — plain value, f/g — plain unary functions,
+// kf/kg — Kleisli functions (a -> T b)
+type ArgKind = 'u' | 'v' | 'w' | 'a' | 'f' | 'g' | 'kf' | 'kg';
+
+interface Law {
+  typeclass: string;
+  name: string;
+  needs: string[]; // module methods the law reads; applies only when all exist
+  args: ArgKind[];
+  check: (T: StaticLandModule, eq: (x: unknown, y: unknown) => boolean) => (...values: any[]) => boolean;
+}
+
+const LAWS: Law[]; // Setoid, Semigroup, Monoid, Functor, Applicative, Chain, Monad
+
+function lawsFor(T: StaticLandModule, typeclasses?: string[]): Law[];
+```
+
+## src/generate.js — property-test generator
+
+```ts
+interface ArbitraryLike {
+  map(f: (value: any) => any): ArbitraryLike;
+} // structurally a fast-check arbitrary; fast-check is NOT a dependency
+
+interface GenerateOptions {
+  arb: ArbitraryLike; // module values (u/v/w)
+  arbA: ArbitraryLike; // plain values (a)
+  arbFn: ArbitraryLike; // plain unary functions (f/g)
+  arbK?: ArbitraryLike; // Kleisli functions; defaults to of-lifted arbFn
+  arbUF?: ArbitraryLike; // lifted functions (T of a -> b) for ap-consistency; defaults to of-lifted arbFn
+  equals?: (x: unknown, y: unknown) => boolean; // defaults to T.equals
+  typeclasses?: string[]; // restrict generated law tests
+}
+
+interface LawTest {
+  name: string;
+  arbs: ArbitraryLike[];
+  predicate: (...values: any[]) => boolean;
+}
+
+function makeLawTests(T: StaticLandModule, opts: GenerateOptions): LawTest[];
+function makeConsistencyTests(T: StaticLandModule, opts: GenerateOptions): LawTest[];
+function runLaws(t: {prop: Function}, tests: LawTest[]): Promise<void>;
+```
+
+`makeConsistencyTests` checks each hand-provided derivable method against every applicable derivation — a path routing through the corrupted method agrees by construction; the refuting paths come from the untainted base. `runLaws` needs tape-six-fast-check imported (side effect registers `t.prop`). The `of`-lifting defaults cannot reach values like a `Nothing`-shaped `T<fn>` — supply `arbK`/`arbUF` for those.
+
+## src/parse.js — sidecar parser (inert)
+
+```ts
+interface Claim {
+  kind: 'pre' | 'post' | 'effects' | 'complexity' | 'pattern' | 'hazard' | 'law';
+  name: string;
+  prose: string;
+  qualifiers?: string;
+  check?: {lang: string; source: string}; // inert source — compile explicitly
+  trigger?: string; // pattern claims only
+  replacement?: {lang: string; source: string};
+  justification?: string;
+  obligation?: string;
+}
+
+interface Sidecar {
+  frontmatter: Record<string, string>; // package / binds / export
+  name: string;
+  description: string;
+  claims: Claim[];
+  implements?: string[]; // from a Laws section's "- implements:" line
+}
+
+function parseSidecar(text: string): Sidecar;
+```
+
+Parses the moonshot §6.5 artifact format — frontmatter, claim sections (Preconditions, Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with backtick-named list items, and ```` ```js check kind:name ```` fenced blocks binding executable checks to claims by name. Loud, located errors on malformed input; never evaluates anything.
+
+## src/compile.js — the trust step
+
+```ts
+function compileCheck(check: NonNullable<Claim['check']>): (...args: any[]) => any;
+function compileChecks(sidecar: Sidecar): Record<string, (...args: any[]) => any>; // keys are `kind:name`
+function lawTestsFromSidecar(sidecar: Sidecar, module: StaticLandModule, opts: GenerateOptions): LawTest[];
+```
+
+Compilation is the explicit trust step the parser refuses to take; it compiles but does not invoke. `lawTestsFromSidecar` bridges a Laws section to the static-land suite: `implements:` selects law sets, consistency obligations ride along, custom `law:` checks become extra properties called as `predicate(completedModule, ...values)`.
+
+## src/guards.js — call-site guards (subpath-only)
+
+```ts
+interface GuardOptions {
+  always?: boolean; // run predicates on every call, host or not; default honors "assumed, never checked at runtime"
+}
+
+function guardsFromSidecar(sidecar: Sidecar, opts?: GuardOptions): Record<string, (...args: any[]) => void>;
+```
+
+One guard per check-bearing `pre:` claim, keyed by claim name; each takes the check's own parameters and routes through tape-six-invariant's `check()` — a counted assertion when a tape-six run exercises the call site, the configured absent behavior otherwise. Importing `invariants-sidecar/guards.js` requires `tape-six-invariant`; the package core stays dependency-free. Pair `{always: true}` with `setAbsentBehavior(throwOnFail)` to pay for checks in production.
+
+## src/oracle.js — apodict oracle bridge
+
+```ts
+interface AxiomTemplate {
+  claim: string;
+  name: string;
+  source: string;
+  atoms: Record<string, string>; // placeholder atoms
+  formulas: unknown[]; // apodict §3 formulas
+}
+
+interface DeclareTemplate {
+  claim: string;
+  source: string;
+  exports: Record<string, string[]>; // per-export flags (pure/total)
+}
+
+interface OracleInputs {
+  axioms: AxiomTemplate[];
+  declares: DeclareTemplate[];
+}
+
+function oracleInputsFromSidecar(sidecar: Sidecar): OracleInputs;
+function instantiateAxioms(
+  axioms: AxiomTemplate[],
+  binding: Record<string, string>
+): {formula: unknown; name: string; source: string}[];
+function declareFromSidecar(declares: DeclareTemplate[], symbolExports: Record<string, string>): Record<string, string[]>;
+```
+
+Blessed claims become oracle inputs: a `law:` claim may carry a ```` ```json axiom ```` block, an `effects:` claim a ```` ```json flags ```` block. `instantiateAxioms` renames placeholder atoms to the consumer's query atoms (throws on an unbound placeholder); `name`/`source` flow into the law trail of any rewrite the axiom licenses. The bridge emits plain wire shapes and depends on nothing — the oracle (npm: `apodictum`) is not a dependency. Measured behavior: the oracle refuses a law-licensed rewrite until the sidecar also vouches `total` for the erased read.
+
+## Notes
+
+- All exports are named; there are no default exports.
+- `exports` map: `.` -> `./index.js`, `./*` -> `./src/*` — subpath imports use the `.js` suffix.
+- Docs: https://github.com/uhop/invariants-sidecar#readme

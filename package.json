@@ -8,8 +8,19 @@
     ".": "./index.js",
     "./*": "./src/*"
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src",
+    "llms.txt",
+    "llms-full.txt"
+  ],
   "scripts": {
     "test": "tape6 --flags FO",
+    "test:bun": "tape6-bun --flags FO",
+    "test:deno": "tape6-deno --flags FO",
+    "ts-check": "tsc --noEmit",
+    "js-check": "tsc --project tsconfig.check.json",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write ."
   },
@@ -22,12 +33,14 @@
   ],
   "author": "Eugene Lazutkin <eugene.lazutkin@gmail.com> (https://lazutkin.com/)",
   "license": "BSD-3-Clause",
+  "funding": "https://github.com/sponsors/uhop",
   "devDependencies": {
     "fast-check": "^4.9.0",
     "nano-binary-search": "^1.1.0",
     "prettier": "^3.6.2",
     "tape-six": "^1.16.2",
     "tape-six-fast-check": "^1.0.0",
-    "tape-six-invariant": "^1.0.0"
+    "tape-six-invariant": "^1.0.0",
+    "typescript": "^7.0.2"
   }
 }

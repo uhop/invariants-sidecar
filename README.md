@@ -1,4 +1,7 @@
-# invariants-sidecar
+# invariants-sidecar [![NPM version][npm-img]][npm-url]
+
+[npm-img]: https://img.shields.io/npm/v/invariants-sidecar.svg
+[npm-url]: https://npmjs.org/package/invariants-sidecar
 
 Library-declared invariants as **verified data**, not prose. This package is
 the experiment's static-land core: a **dictionary completer** (derive `map`,

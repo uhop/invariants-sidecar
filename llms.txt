@@ -1,0 +1,58 @@
+# invariants-sidecar
+
+> Library-declared invariants as verified data: a static-land dictionary completer (derive `map`, `ap`, … from a minimal base) plus a law/consistency property-test generator targeting tape-six-fast-check's `t.prop()`, and a sidecar-artifact toolchain — parser (inert data), check compiler (explicit trust step), call-site guards, apodict oracle bridge. Zero runtime dependencies; claims are verified, never trusted.
+
+## Install
+
+npm install --save-dev invariants-sidecar tape-six tape-six-fast-check fast-check
+
+## Quick start — static-land laws
+
+```js
+import test from 'tape-six';
+import fc from 'fast-check';
+import 'tape-six-fast-check';
+import {complete, makeLawTests, makeConsistencyTests, runLaws} from 'invariants-sidecar';
+
+const {module: M, derived, consistency} = complete(Maybe); // minimal base in, full module out
+
+const opts = {
+  arb: fc.oneof(fc.constant(NOTHING), fc.integer().map(Maybe.of)),
+  arbA: fc.integer(),
+  arbFn: fc.func(fc.integer())
+};
+
+test('Maybe laws', async t => {
+  await runLaws(t, makeLawTests(M, opts));
+  await runLaws(t, makeConsistencyTests(Maybe, opts));
+});
+```
+
+Law sets: Setoid, Semigroup, Monoid, Functor, Applicative, Chain, Monad.
+Lifted values default to `of`-lifting; supply `arbK`/`arbUF` to reach values `of` cannot build.
+
+## Quick start — sidecar artifacts
+
+```js
+import {parseSidecar, compileChecks} from 'invariants-sidecar';
+
+const sidecar = parseSidecar(text); // inert data — nothing is evaluated
+const checks = compileChecks(sidecar); // explicit trust step — compiles, doesn't invoke
+// checks['pre:partitioned'](...) / checks['post:partition-point'](...) inside t.prop properties
+```
+
+## API surface (all named exports)
+
+- `complete(module)` → `{module, derived, consistency}` — derive every missing derivable method to fixpoint; `DERIVATIONS` is the lattice.
+- `lawsFor(T, typeclasses?)` / `LAWS` — applicable law records.
+- `makeLawTests(T, opts)` / `makeConsistencyTests(T, opts)` → `LawTest[]`; `runLaws(t, tests)` drives them through `t.prop`.
+- `parseSidecar(text)` → `Sidecar` — moonshot §6.5 markdown to inert data; loud, located errors.
+- `compileCheck(check)` / `compileChecks(sidecar)` — checks as callables, keyed `kind:name`.
+- `lawTestsFromSidecar(sidecar, module, opts)` — a Laws section (`implements:` + custom `law:` checks) as a law suite.
+- `guardsFromSidecar(sidecar, opts?)` (subpath `invariants-sidecar/guards.js`, requires tape-six-invariant) — check-bearing `pre:` claims as call-site guards.
+- `oracleInputsFromSidecar(sidecar)` / `instantiateAxioms(axioms, binding)` / `declareFromSidecar(declares, symbolExports)` — blessed `law:`/`effects:` claims as apodict oracle wire shapes (npm: `apodictum`; not a dependency).
+
+## Notes
+
+- ES modules only; no build step; `.d.ts` sidecars carry all types + docs.
+- Full API reference: llms-full.txt. Repo: https://github.com/uhop/invariants-sidecar

@@ -15,12 +15,13 @@ const SECTIONS = {
 const CLAIM_RE = /^- `([^`]+)`(?:\s*\((.+)\))?:\s*(.*)$/;
 const IMPLEMENTS_RE = /^- implements:\s*(.+)$/;
 const FENCE_RE = /^(\s*)```(.*)$/;
-const PATTERN_FIELDS = [
-  ['trigger', /^- Trigger:\s*(.*)$/],
-  ['replacement', /^- Replacement:\s*(.*)$/],
-  ['justification', /^- Justification:\s*(.*)$/],
-  ['obligation', /^- Obligation[^:]*:\s*(.*)$/]
-];
+const PATTERN_FIELDS =
+  /** @type {['trigger' | 'replacement' | 'justification' | 'obligation', RegExp][]} */ ([
+    ['trigger', /^- Trigger:\s*(.*)$/],
+    ['replacement', /^- Replacement:\s*(.*)$/],
+    ['justification', /^- Justification:\s*(.*)$/],
+    ['obligation', /^- Obligation[^:]*:\s*(.*)$/]
+  ]);
 
 const fail = (message, line) => {
   throw new Error(`sidecar parse: ${message} (line ${line + 1})`);
