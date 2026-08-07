@@ -120,10 +120,11 @@ runs only when a tape-six host was present at load (`hasHost`). Pass
 ## The oracle bridge (`law:`/`effects:` claims as rewrite licenses)
 
 `src/oracle.js` is the third consumer: blessed claims become
-[apodict](../apodict) oracle inputs. apodict is **not a dependency** — the
-bridge emits plain wire shapes; the integration test loads apodict
-dynamically (installed package, then the fleet-layout sibling) and skips
-cleanly when neither resolves, so `npm install` and CI work anywhere. A `law:` claim may carry a
+[apodict](../apodict) oracle inputs (npm name: `apodictum`). The oracle is
+**not a dependency** — the bridge emits plain wire shapes; the integration
+test loads it dynamically (the `apodictum` package when installed, then the
+fleet-layout sibling) and skips cleanly when neither resolves, so
+`npm install` and CI work anywhere. A `law:` claim may carry a
 ` ```json axiom ` block (placeholder atoms + §3 formulas);
 `oracleInputsFromSidecar` extracts them and `instantiateAxioms` renames
 placeholders to the consumer's query atoms, yielding assume-ready entries

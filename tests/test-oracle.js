@@ -4,14 +4,14 @@ import test from 'tape-six';
 import {parseSidecar} from '../src/parse.js';
 import {oracleInputsFromSidecar, instantiateAxioms, declareFromSidecar} from '../src/oracle.js';
 
-// apodict is a private sibling, not a dependency: load it dynamically —
-// installed package first (future-proof), the fleet-layout sibling second —
-// and skip the integration tests cleanly when neither resolves (CI-safe).
-// NO_APODICT=1 forces the skip path for testing it.
+// The oracle is a private sibling, not a dependency: load it dynamically —
+// the published package (`apodictum`) first, the fleet-layout sibling
+// (still `apodict` on disk) second — and skip the integration tests cleanly
+// when neither resolves (CI-safe). NO_APODICT=1 forces the skip path.
 const loadApodict = async () => {
   if (process.env.NO_APODICT) return null;
   const candidates = [
-    ['apodict', () => new URL('./rules/', import.meta.resolve('apodict'))],
+    ['apodictum', () => new URL('./rules/', import.meta.resolve('apodictum'))],
     [
       new URL('../../apodict/index.js', import.meta.url).href,
       () => new URL('../../apodict/rules/', import.meta.url)
