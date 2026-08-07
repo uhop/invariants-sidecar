@@ -11,16 +11,17 @@ const SECTIONS = {
   Laws: 'law'
 };
 
-// greedy qualifier + `):`-anchored close so nested parens (`O(n)`) survive
-const CLAIM_RE = /^- `([^`]+)`(?:\s*\((.+)\))?:\s*(.*)$/;
-const IMPLEMENTS_RE = /^- implements:\s*(.+)$/;
+// greedy qualifier + `):`-anchored close so nested parens (`O(n)`) survive;
+// no \s* next to .* — single-quantifier forms stay linear (js/polynomial-redos)
+const CLAIM_RE = /^- `([^`]+)`(?: \((.+)\))?:(.*)$/;
+const IMPLEMENTS_RE = /^- implements:(.+)$/;
 const FENCE_RE = /^(\s*)```(.*)$/;
 const PATTERN_FIELDS =
   /** @type {['trigger' | 'replacement' | 'justification' | 'obligation', RegExp][]} */ ([
-    ['trigger', /^- Trigger:\s*(.*)$/],
-    ['replacement', /^- Replacement:\s*(.*)$/],
-    ['justification', /^- Justification:\s*(.*)$/],
-    ['obligation', /^- Obligation[^:]*:\s*(.*)$/]
+    ['trigger', /^- Trigger:(.*)$/],
+    ['replacement', /^- Replacement:(.*)$/],
+    ['justification', /^- Justification:(.*)$/],
+    ['obligation', /^- Obligation[^:]*:(.*)$/]
   ]);
 
 const fail = (message, line) => {
@@ -34,9 +35,12 @@ export const parseSidecar = text => {
   const frontmatter = {};
   if (lines[0] !== '---') fail('expected frontmatter opening ---', 0);
   for (i = 1; i < lines.length && lines[i] !== '---'; ++i) {
-    const m = /^(\w+):\s*(.*)$/.exec(lines[i]);
+    const m = /^(\w+):(.*)$/.exec(lines[i]);
     if (!m) fail(`bad frontmatter line: ${lines[i]}`, i);
-    frontmatter[m[1]] = m[2].replace(/^'(.*)'$/, '$1').replace(/^"(.*)"$/, '$1');
+    frontmatter[m[1]] = m[2]
+      .trim()
+      .replace(/^'(.*)'$/, '$1')
+      .replace(/^"(.*)"$/, '$1');
   }
   if (i === lines.length) fail('unterminated frontmatter', 0);
   ++i;
@@ -121,7 +125,7 @@ export const parseSidecar = text => {
           const m = re.exec(line);
           if (m) {
             patternField = field;
-            if (field !== 'replacement') pattern[field] = m[1];
+            if (field !== 'replacement') pattern[field] = m[1].trim();
             matched = true;
             break;
           }
@@ -145,7 +149,7 @@ export const parseSidecar = text => {
       }
       const claim = CLAIM_RE.exec(line);
       if (claim) {
-        current = addClaim({kind, name: claim[1], prose: claim[3]});
+        current = addClaim({kind, name: claim[1], prose: claim[3].trim()});
         if (claim[2]) current.qualifiers = claim[2];
         continue;
       }
