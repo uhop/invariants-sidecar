@@ -150,6 +150,9 @@ parameter (`std::` container semantics).
 
 ## Hazards
 
+- `mutating-predicate`: an ordering predicate that mutates the array
+  mid-search voids all postconditions — the family takes the comparator, so a
+  mutating one is the live footgun.
 - `derived-equality`: membership is decided by `!less(a, b) && !less(b, a)`,
   not `===` — objects compared by a key function are "equal" whenever keys
   tie, and `indexOf` can return an element that is not `===` to `value`.

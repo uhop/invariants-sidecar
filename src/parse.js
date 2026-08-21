@@ -98,7 +98,16 @@ export const parseSidecar = text => {
   if (problems.length) fail(`not a sidecar — ${problems.join('; ')}`, 0);
   ++i;
 
-  const sidecar = {frontmatter, name: '', description: '', claims: []};
+  // `frontmatter` stays raw: every value is the string the file carried.
+  // `version` is the typed one, safe here because sidecarProblems above
+  // already refused anything that is not a decimal integer.
+  const sidecar = {
+    frontmatter,
+    version: Number(frontmatter.sidecar),
+    name: '',
+    description: '',
+    claims: []
+  };
   const byKey = new Map();
   let kind = null;
   let current = null;

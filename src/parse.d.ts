@@ -13,7 +13,10 @@ export interface Claim {
 }
 
 export interface Sidecar {
+  /** Raw frontmatter: every value is a string, exactly as written in the file. */
   frontmatter: Record<string, string>;
+  /** Format version as a number — compare against `SIDECAR_VERSION`. */
+  version: number;
   name: string;
   description: string;
   claims: Claim[];

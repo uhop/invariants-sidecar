@@ -104,7 +104,8 @@ interface Claim {
 }
 
 interface Sidecar {
-  frontmatter: Record<string, string>; // sidecar / package / binds, + export / verified
+  frontmatter: Record<string, string>; // raw: EVERY value is a string, as written
+  version: number; // typed format version — compare against SIDECAR_VERSION
   name: string;
   description: string;
   claims: Claim[];
@@ -120,7 +121,7 @@ function parseSidecar(text: string): Sidecar;
 
 Parses the moonshot §6.5 vocabulary in the §6.6 format — frontmatter, claim sections (Preconditions, Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with backtick-named list items, and ```` ```js check kind:name ```` fenced blocks binding executable checks to claims by name. Loud, located errors on malformed input; never evaluates anything.
 
-**Frontmatter is the discriminator.** `sidecar` (integer format version), `package` (must equal the host package's name — catches a vendored copy) and `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose ("properties that must hold", usually under `docs/`) and for agent guardrails (`.claude/INVARIANTS.md`), so the filename decides nothing: a file without those keys is prose. `isSidecar` answers that without throwing — the common case is a file a consumer should skip in silence — while `parseSidecar` throws a located error naming every missing key, and `sidecarProblems` returns those reasons for logging.
+**Frontmatter is the discriminator.** `sidecar` (integer format version), `package` (must equal the host package's name — catches a vendored copy) and `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose ("properties that must hold", usually under `docs/`) and for agent guardrails (`.claude/INVARIANTS.md`), so the filename decides nothing: a file without those keys is prose. `isSidecar` answers that without throwing — the common case is a file a consumer should skip in silence — while `parseSidecar` throws a located error naming every missing key, and `sidecarProblems` returns those reasons for logging. **Frontmatter values are raw strings** — `readFrontmatter` is a generic reader and does not type them, so `fm.sidecar` is `"1"`, not `1`. The typed one is `parseSidecar(text).version`, which is what `SIDECAR_VERSION` is meant to be compared against; `fm.sidecar === SIDECAR_VERSION` compares a string to a number and is false for every valid sidecar.
 
 ## src/resolve.js — sidecar discovery (subpath-only)
 

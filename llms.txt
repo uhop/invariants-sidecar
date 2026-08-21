@@ -50,7 +50,7 @@ Frontmatter is strict and is the only discriminator: `sidecar` (integer format v
 - `lawsFor(T, typeclasses?)` / `LAWS` — applicable law records.
 - `makeLawTests(T, opts)` / `makeConsistencyTests(T, opts)` → `LawTest[]`; `runLaws(t, tests)` drives them through `t.prop`.
 - `parseSidecar(text)` → `Sidecar` — moonshot §6.5 vocabulary in the §6.6 format, to inert data; loud, located errors, including frontmatter that does not identify a sidecar.
-- `isSidecar(text)` / `readFrontmatter(text)` / `sidecarProblems(frontmatter)` / `SIDECAR_VERSION` — the discriminator, and why a file failed it. Never throw.
+- `isSidecar(text)` / `readFrontmatter(text)` / `sidecarProblems(frontmatter)` / `SIDECAR_VERSION` — the discriminator, and why a file failed it. Never throw. Frontmatter values are raw strings (`fm.sidecar` is `"1"`); the typed version is `parseSidecar(text).version`, which is what `SIDECAR_VERSION` compares against.
 - `resolveSidecar(read)` (subpath `invariants-sidecar/resolve.js`) → `{path, via, sidecar, version, binds, stale, verified}` | `{path, skipped}` | `null` — §6.6 discovery for an installed package: manifest `invariants` key, else root `INVARIANTS.md`. Takes a reader over the package directory, so it imports no node builtins. `satisfies(version, range)` handles exact/`^`/`~`/`*` and returns null for forms it does not implement.
 - `compileCheck(check)` / `compileChecks(sidecar)` — checks as callables, keyed `kind:name`.
 - `lawTestsFromSidecar(sidecar, module, opts)` — a Laws section (`implements:` + custom `law:` checks) as a law suite.

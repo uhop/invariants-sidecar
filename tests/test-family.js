@@ -38,7 +38,7 @@ test('the family sidecar parses with all claim kinds', t => {
     (acc, c) => ((acc[c.kind] = (acc[c.kind] || 0) + 1), acc),
     {}
   );
-  t.deepEqual(kinds, {pre: 2, post: 4, law: 4, effects: 4, pattern: 1, hazard: 3});
+  t.deepEqual(kinds, {pre: 2, post: 4, law: 4, effects: 4, pattern: 1, hazard: 4});
   t.deepEqual(Object.keys(checks), [
     'pre:sorted',
     'post:lowerBound-first-not-less',

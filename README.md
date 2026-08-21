@@ -88,10 +88,17 @@ Optional: `export`, and `verified: ci`. Anything missing means the file is
 prose: `isSidecar(text)` answers that without throwing, and `parseSidecar`
 throws a located error naming what is absent.
 
-```js
-import {isSidecar, parseSidecar} from 'invariants-sidecar';
+Frontmatter values are **raw strings** — `readFrontmatter` does not type them,
+so `fm.sidecar` is `"1"`. The typed one is `parseSidecar(text).version`, and
+that is what `SIDECAR_VERSION` is meant to be compared against.
 
-if (isSidecar(text)) parseSidecar(text); // otherwise it is prose — skip it
+```js
+import {isSidecar, parseSidecar, SIDECAR_VERSION} from 'invariants-sidecar';
+
+if (!isSidecar(text)) return; // prose, not a contract — skip it
+const sidecar = parseSidecar(text);
+sidecar.version === SIDECAR_VERSION; // true — both numbers
+sidecar.frontmatter.sidecar; // "1" — raw, as written in the file
 ```
 
 `resolveSidecar` does the whole lookup for an installed package: the manifest's

@@ -4,7 +4,13 @@ import {join} from 'node:path';
 
 import test from 'tape-six';
 
-import {isSidecar, parseSidecar, sidecarProblems, readFrontmatter} from '../src/parse.js';
+import {
+  isSidecar,
+  parseSidecar,
+  sidecarProblems,
+  readFrontmatter,
+  SIDECAR_VERSION
+} from '../src/parse.js';
 import {resolveSidecar, satisfies} from '../src/resolve.js';
 import {oracleInputsFromSidecar} from '../src/oracle.js';
 
@@ -153,4 +159,18 @@ test('ingestion yields nothing without verified: ci, and says so', t => {
 
   const selfClaimed = parseSidecar(SIDECAR.replace('verified: ci', 'verified: trust-me'));
   t.equal(oracleInputsFromSidecar(selfClaimed).unverified, true, 'only `ci` clears it');
+});
+
+test('the parsed version is a number and compares against SIDECAR_VERSION', t => {
+  const sidecar = parseSidecar(SIDECAR);
+
+  // The whole point: the natural comparison a consumer writes must work.
+  t.equal(sidecar.version, SIDECAR_VERSION, 'version equals the constant');
+  t.equal(typeof sidecar.version, 'number', 'version is a number');
+
+  // And the raw frontmatter stays raw — readFrontmatter is a generic reader,
+  // not a typed one, so every value it yields is still the file's string.
+  t.equal(typeof sidecar.frontmatter.sidecar, 'string', 'frontmatter stays string-typed');
+  t.equal(sidecar.frontmatter.sidecar, '1', 'frontmatter carries the literal text');
+  t.equal(typeof readFrontmatter(SIDECAR).sidecar, 'string', 'so does readFrontmatter');
 });
