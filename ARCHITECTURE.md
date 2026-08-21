@@ -15,7 +15,8 @@ src/
 ├── static-land.js   # DERIVATIONS lattice, complete() — derive to fixpoint + consistency obligations
 ├── laws.js          # LAWS records (Setoid…Monad), lawsFor() applicability filter
 ├── generate.js      # makeLawTests / makeConsistencyTests / runLaws — LawTest[] for t.prop
-├── parse.js         # parseSidecar — moonshot §6.5 markdown → inert data, never evaluates
+├── resolve.js       # resolveSidecar / satisfies — §6.6 discovery via an injected reader, no node builtins
+├── parse.js         # parseSidecar / isSidecar — §6.5 vocabulary in the §6.6 format → inert data, never evaluates
 ├── compile.js       # compileCheck / compileChecks — the explicit trust step; lawTestsFromSidecar
 ├── guards.js        # guardsFromSidecar — pre: claims as tape-six-invariant call-site guards (subpath-only)
 └── oracle.js        # oracleInputsFromSidecar / instantiateAxioms / declareFromSidecar — apodictum wire shapes

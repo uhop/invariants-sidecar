@@ -192,6 +192,9 @@ suite-pinned.
 
 ## Release notes
 
+- **0.1.0** — Sidecar discovery for an installed package (`resolveSidecar`), a strict frontmatter
+  discriminator so a prose `INVARIANTS.md` is never read as a contract (`isSidecar`), oracle ingestion
+  gated on `verified: ci`, and a linear-time parser (two ReDoS fixes).
 - **0.0.1** — Initial release.
 
 The full release notes are in the wiki:
