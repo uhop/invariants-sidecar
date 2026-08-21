@@ -44,7 +44,7 @@
   "homepage": "https://github.com/uhop/invariants-sidecar#readme",
   "devDependencies": {
     "fast-check": "^4.9.0",
-    "nano-binary-search": "^1.1.0",
+    "nano-binary-search": "^1.2.0",
     "prettier": "^3.9.6",
     "tape-six": "^1.16.4",
     "tape-six-fast-check": "^1.0.0",
