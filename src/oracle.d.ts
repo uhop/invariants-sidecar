@@ -19,11 +19,18 @@ export interface DeclareTemplate {
 export interface OracleInputs {
   axioms: AxiomTemplate[];
   declares: DeclareTemplate[];
+  /** Set when the sidecar lacks `verified: ci`: nothing was extracted, because
+   *  an unverified sidecar is a proposal rather than provenance. */
+  unverified?: boolean;
 }
 
 /** Extract `law:` axiom blocks and `effects:` flags blocks as oracle wire
- *  shapes. Depends on nothing — apodictum included. */
-export function oracleInputsFromSidecar(sidecar: Sidecar): OracleInputs;
+ *  shapes. Depends on nothing — apodictum included. Yields nothing unless the
+ *  sidecar carries `verified: ci`; `allowUnverified` reads it as a proposal. */
+export function oracleInputsFromSidecar(
+  sidecar: Sidecar,
+  opts?: {allowUnverified?: boolean}
+): OracleInputs;
 
 /** Rename placeholder atoms to the consumer's query atom names; throws on
  *  an unbound placeholder. Returns apodictum assume-entry objects

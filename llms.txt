@@ -34,23 +34,28 @@ Lifted values default to `of`-lifting; supply `arbK`/`arbUF` to reach values `of
 ## Quick start — sidecar artifacts
 
 ```js
-import {parseSidecar, compileChecks} from 'invariants-sidecar';
+import {isSidecar, parseSidecar, compileChecks} from 'invariants-sidecar';
 
+if (!isSidecar(text)) return; // a prose INVARIANTS.md — the filename proves nothing
 const sidecar = parseSidecar(text); // inert data — nothing is evaluated
 const checks = compileChecks(sidecar); // explicit trust step — compiles, doesn't invoke
 // checks['pre:partitioned'](...) / checks['post:partition-point'](...) inside t.prop properties
 ```
+
+Frontmatter is strict and is the only discriminator: `sidecar` (integer format version), `package` (must equal the host package's name), `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose and for agent guardrails, so a file without those keys is prose, not a contract.
 
 ## API surface (all named exports)
 
 - `complete(module)` → `{module, derived, consistency}` — derive every missing derivable method to fixpoint; `DERIVATIONS` is the lattice.
 - `lawsFor(T, typeclasses?)` / `LAWS` — applicable law records.
 - `makeLawTests(T, opts)` / `makeConsistencyTests(T, opts)` → `LawTest[]`; `runLaws(t, tests)` drives them through `t.prop`.
-- `parseSidecar(text)` → `Sidecar` — moonshot §6.5 markdown to inert data; loud, located errors.
+- `parseSidecar(text)` → `Sidecar` — moonshot §6.5 vocabulary in the §6.6 format, to inert data; loud, located errors, including frontmatter that does not identify a sidecar.
+- `isSidecar(text)` / `readFrontmatter(text)` / `sidecarProblems(frontmatter)` / `SIDECAR_VERSION` — the discriminator, and why a file failed it. Never throw.
+- `resolveSidecar(read)` (subpath `invariants-sidecar/resolve.js`) → `{path, via, sidecar, version, binds, stale, verified}` | `{path, skipped}` | `null` — §6.6 discovery for an installed package: manifest `invariants` key, else root `INVARIANTS.md`. Takes a reader over the package directory, so it imports no node builtins. `satisfies(version, range)` handles exact/`^`/`~`/`*` and returns null for forms it does not implement.
 - `compileCheck(check)` / `compileChecks(sidecar)` — checks as callables, keyed `kind:name`.
 - `lawTestsFromSidecar(sidecar, module, opts)` — a Laws section (`implements:` + custom `law:` checks) as a law suite.
 - `guardsFromSidecar(sidecar, opts?)` (subpath `invariants-sidecar/guards.js`, requires tape-six-invariant) — check-bearing `pre:` claims as call-site guards.
-- `oracleInputsFromSidecar(sidecar)` / `instantiateAxioms(axioms, binding)` / `declareFromSidecar(declares, symbolExports)` — blessed `law:`/`effects:` claims as `apodictum` oracle wire shapes (not a dependency).
+- `oracleInputsFromSidecar(sidecar, opts?)` / `instantiateAxioms(axioms, binding)` / `declareFromSidecar(declares, symbolExports)` — blessed `law:`/`effects:` claims as `apodictum` oracle wire shapes (not a dependency). Yields nothing unless the sidecar carries `verified: ci`, returning `unverified: true` instead; `{allowUnverified: true}` reads it as a proposal.
 
 ## Notes
 

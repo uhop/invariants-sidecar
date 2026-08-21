@@ -1,5 +1,18 @@
 // @ts-self-types="./parse.d.ts"
 
+// This format version. moonshot §6.6 makes `sidecar` the discriminator: the
+// filename is not one, because INVARIANTS.md is widely used for human prose
+// and for agent guardrails, and reading either as a contract would promote
+// somebody's sentences to axioms.
+export const SIDECAR_VERSION = 1;
+
+// Required frontmatter, and why each one is load-bearing:
+//   sidecar  format version — its absence means the file is not one
+//   package  must equal the host package's name, which catches a vendored copy
+//   binds    the versions the claims are asserted for; unversioned claims are
+//            not sound, since a claim about 1.1.0 says nothing about 2.0.0
+const REQUIRED = ['sidecar', 'package', 'binds'];
+
 // Sidecar sections → claim kinds (moonshot §6.5 worked-artifact format).
 const SECTIONS = {
   Preconditions: 'pre',
@@ -29,6 +42,43 @@ const fail = (message, line) => {
   throw new Error(`sidecar parse: ${message} (line ${line + 1})`);
 };
 
+// Reads the frontmatter block alone, and never throws: the answer to "is this
+// a sidecar at all" must not be an exception, because the common case is a
+// prose INVARIANTS.md that a consumer should skip in silence.
+export const readFrontmatter = text => {
+  const lines = String(text ?? '').split('\n');
+  if (lines[0] !== '---') return null;
+  const frontmatter = {};
+  let i = 1;
+  for (; i < lines.length && lines[i] !== '---'; ++i) {
+    const m = /^(\w+):(.*)$/.exec(lines[i]);
+    if (!m) return null;
+    frontmatter[m[1]] = m[2]
+      .trim()
+      .replace(/^'(.*)'$/, '$1')
+      .replace(/^"(.*)"$/, '$1');
+  }
+  return i === lines.length ? null : frontmatter;
+};
+
+// Every reason a frontmatter block fails to identify a sidecar, or [] when it
+// is one. Reasons are returned rather than thrown so a caller can log why a
+// file it expected to be a sidecar was skipped.
+export const sidecarProblems = frontmatter => {
+  if (!frontmatter) return ['no parseable frontmatter'];
+  const problems = REQUIRED.filter(key => !frontmatter[key]).map(key => `missing \`${key}\``);
+  const version = frontmatter.sidecar;
+  if (version && !/^\d+$/.test(version)) problems.push('`sidecar` must be an integer');
+  else if (version && Number(version) !== SIDECAR_VERSION)
+    problems.push(
+      `unsupported \`sidecar\` version ${version} (this parser implements ${SIDECAR_VERSION})`
+    );
+  return problems;
+};
+
+// True only for a file this parser will treat as a contract. Never throws.
+export const isSidecar = text => sidecarProblems(readFrontmatter(text)).length === 0;
+
 export const parseSidecar = text => {
   const lines = text.split('\n');
   let i = 0;
@@ -44,6 +94,8 @@ export const parseSidecar = text => {
       .replace(/^"(.*)"$/, '$1');
   }
   if (i === lines.length) fail('unterminated frontmatter', 0);
+  const problems = sidecarProblems(frontmatter);
+  if (problems.length) fail(`not a sidecar — ${problems.join('; ')}`, 0);
   ++i;
 
   const sidecar = {frontmatter, name: '', description: '', claims: []};

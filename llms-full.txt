@@ -104,17 +104,48 @@ interface Claim {
 }
 
 interface Sidecar {
-  frontmatter: Record<string, string>; // package / binds / export
+  frontmatter: Record<string, string>; // sidecar / package / binds, + export / verified
   name: string;
   description: string;
   claims: Claim[];
   implements?: string[]; // from a Laws section's "- implements:" line
 }
 
+const SIDECAR_VERSION: number;
+function readFrontmatter(text: string): Record<string, string> | null; // never throws
+function sidecarProblems(frontmatter: Record<string, string> | null): string[];
+function isSidecar(text: string): boolean; // never throws
 function parseSidecar(text: string): Sidecar;
 ```
 
-Parses the moonshot §6.5 artifact format — frontmatter, claim sections (Preconditions, Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with backtick-named list items, and ```` ```js check kind:name ```` fenced blocks binding executable checks to claims by name. Loud, located errors on malformed input; never evaluates anything.
+Parses the moonshot §6.5 vocabulary in the §6.6 format — frontmatter, claim sections (Preconditions, Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with backtick-named list items, and ```` ```js check kind:name ```` fenced blocks binding executable checks to claims by name. Loud, located errors on malformed input; never evaluates anything.
+
+**Frontmatter is the discriminator.** `sidecar` (integer format version), `package` (must equal the host package's name — catches a vendored copy) and `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose ("properties that must hold", usually under `docs/`) and for agent guardrails (`.claude/INVARIANTS.md`), so the filename decides nothing: a file without those keys is prose. `isSidecar` answers that without throwing — the common case is a file a consumer should skip in silence — while `parseSidecar` throws a located error naming every missing key, and `sidecarProblems` returns those reasons for logging.
+
+## src/resolve.js — sidecar discovery (subpath-only)
+
+```ts
+interface ResolvedSidecar {
+  path: string;
+  via: 'manifest' | 'filename';
+  sidecar: Sidecar;
+  version: string | null; // the installed package's version
+  binds: string;
+  stale: boolean | null; // binds excludes it; null = unknown range form
+  verified: boolean; // frontmatter.verified === 'ci'
+}
+interface SkippedSidecar {
+  path: string;
+  skipped: string; // why a candidate was refused
+}
+
+function satisfies(version: string, range: string): boolean | null;
+function resolveSidecar(
+  read: (path: string) => string | null | undefined
+): ResolvedSidecar | SkippedSidecar | null;
+```
+
+Moonshot §6.6 discovery for one installed package: the manifest's `invariants` key first (declarative — the author states the file is a sidecar), then a root `INVARIANTS.md` (provisional until the frontmatter validates). `read` is a reader over the package directory, so this module imports no node builtins and `src/` stays runtime-agnostic; a node caller supplies `rel => readFileSync(join(dir, rel), 'utf8')`. `null` means the package has no sidecar; `{path, skipped}` means one existed and was refused, so a consumer can tell that from "none". `stale` is `true` when `binds` excludes the installed version — still a real sidecar, but its claims drop to context. `satisfies` implements exact, `^`, `~` and `*`, and returns `null` for any other form rather than guessing, since guessing would silently downgrade a live sidecar.
 
 ## src/compile.js — the trust step
 
@@ -138,7 +169,7 @@ function guardsFromSidecar(sidecar: Sidecar, opts?: GuardOptions): Record<string
 
 One guard per check-bearing `pre:` claim, keyed by claim name; each takes the check's own parameters and routes through tape-six-invariant's `check()` — a counted assertion when a tape-six run exercises the call site, the configured absent behavior otherwise. Importing `invariants-sidecar/guards.js` requires `tape-six-invariant`; the package core stays dependency-free. Pair `{always: true}` with `setAbsentBehavior(throwOnFail)` to pay for checks in production.
 
-## src/oracle.js — apodictum oracle bridge
+## src/oracle.js — apodictum oracle bridge (gated on `verified: ci`)
 
 ```ts
 interface AxiomTemplate {
@@ -158,9 +189,13 @@ interface DeclareTemplate {
 interface OracleInputs {
   axioms: AxiomTemplate[];
   declares: DeclareTemplate[];
+  unverified?: boolean; // set when nothing was extracted for want of verified: ci
 }
 
-function oracleInputsFromSidecar(sidecar: Sidecar): OracleInputs;
+function oracleInputsFromSidecar(
+  sidecar: Sidecar,
+  opts?: {allowUnverified?: boolean}
+): OracleInputs;
 function instantiateAxioms(
   axioms: AxiomTemplate[],
   binding: Record<string, string>
@@ -169,6 +204,8 @@ function declareFromSidecar(declares: DeclareTemplate[], symbolExports: Record<s
 ```
 
 Blessed claims become oracle inputs: a `law:` claim may carry a ```` ```json axiom ```` block, an `effects:` claim a ```` ```json flags ```` block. `instantiateAxioms` renames placeholder atoms to the consumer's query atoms (throws on an unbound placeholder); `name`/`source` flow into the law trail of any rewrite the axiom licenses. The bridge emits plain wire shapes and depends on nothing — the `apodictum` oracle is not a dependency. Measured behavior: the oracle refuses a law-licensed rewrite until the sidecar also vouches `total` for the erased read.
+
+**The ingestion boundary is enforced here.** Claims become axioms only from a sidecar the package's own CI keeps true, so `oracleInputsFromSidecar` yields nothing unless the frontmatter carries `verified: ci` — it returns `{axioms: [], declares: [], unverified: true}` rather than throwing, since a consumer sweeping many packages should not need a try/catch. `{allowUnverified: true}` reads the claims anyway, as proposals. An unverified sidecar, a stale one, and a prose file that happens to be called `INVARIANTS.md` are all proposals rather than provenance — the GHC-RULES lesson, which is that shipping rewrite rules works and trusting them unchecked is the failure mode.
 
 ## Notes
 

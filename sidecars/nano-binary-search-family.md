@@ -1,7 +1,9 @@
 ---
+sidecar: 1
 package: nano-binary-search
 binds: ^1.1.0
 export: 'sorted-array family: lowerBound, upperBound, indexOf, lastIndexOf, includes, equalRange, count, insert, remove, removeAll'
+verified: ci
 ---
 
 # sorted-array family

@@ -5,10 +5,17 @@
 // that liftAxioms turns into cited rewrite rules, and per-export purity
 // flags for the consumer's declare. Emits wire shapes only; this module
 // depends on nothing, apodictum included.
-export const oracleInputsFromSidecar = sidecar => {
+// The ingestion boundary (moonshot §6.6, front-end skill § Sidecar ingestion):
+// law:/effects: claims become axioms only from a sidecar the package's own CI
+// keeps true. An unverified sidecar is a proposal — returned empty and marked,
+// not thrown, so a caller sweeping many packages needs no try/catch. Pass
+// {allowUnverified: true} to read the proposals anyway.
+export const oracleInputsFromSidecar = (sidecar, opts = {}) => {
   const pkg = sidecar.frontmatter.package || sidecar.name;
   const binds = sidecar.frontmatter.binds || '';
   const provenance = binds ? `${pkg}@${binds} sidecar` : `${pkg} sidecar`;
+  if (sidecar.frontmatter.verified !== 'ci' && !opts.allowUnverified)
+    return {axioms: [], declares: [], unverified: true};
   const axioms = [];
   const declares = [];
   for (const claim of sidecar.claims) {

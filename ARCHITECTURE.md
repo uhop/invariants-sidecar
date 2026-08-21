@@ -26,7 +26,12 @@ tests/               # tape-six suite; fixtures hold worked sidecar artifacts
 ## Data flow
 
 ```
-sidecar markdown (moonshot §6.5)
+package dir
+  │  resolveSidecar(read) — manifest `invariants` key, else root INVARIANTS.md
+  │                         (§6.6); null = none, {path, skipped} = refused
+  ▼
+sidecar markdown (moonshot §6.5 vocabulary, §6.6 format)
+  │  isSidecar — frontmatter `sidecar`/`package`/`binds`, never throws
   │  parseSidecar — loud, located errors; checks stay inert source
   ▼
 Sidecar {frontmatter, name, description, claims[], implements?}
@@ -36,6 +41,8 @@ Sidecar {frontmatter, name, description, claims[], implements?}
   │         └─ complete(module) + implements: → law + consistency LawTest[]
   ├─ guardsFromSidecar   — pre: claims → runtime guards (tape-six-invariant)
   └─ oracleInputsFromSidecar — law: axiom blocks + effects: flags blocks
+       └─ gated on `verified: ci`; otherwise {axioms: [], declares: [],
+          unverified: true} — a proposal is not provenance
        └─ instantiateAxioms / declareFromSidecar → apodictum query inputs
 ```
 

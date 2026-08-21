@@ -71,12 +71,50 @@ like a `Nothing`-shaped `T<fn>`; supply `arbK`/`arbUF` to cover them.
 
 ## The sidecar format
 
-`parseSidecar(text)` reads the moonshot §6.5 artifact format — frontmatter
-(`package`/`binds`/`export`), claim sections (Preconditions,
-Postconditions, Effects, Complexity, Patterns, Hazards, Laws) with
-backtick-named list items, and ` ```js check kind:name ` fenced blocks
-binding executable checks to claims by name — into **inert data**: the
-parser never evaluates anything. `compileChecks(sidecar)` is the explicit
+`parseSidecar(text)` reads the moonshot §6.5 vocabulary in the §6.6 format —
+frontmatter, claim sections (Preconditions, Postconditions, Effects,
+Complexity, Patterns, Hazards, Laws) with backtick-named list items, and
+` ```js check kind:name ` fenced blocks binding executable checks to claims by
+name — into **inert data**: the parser never evaluates anything.
+
+**Frontmatter is the discriminator, and it is strict.** `INVARIANTS.md` is a
+common filename for things that are not sidecars: human prose recording
+"properties that must hold" (usually under `docs/`) and agent guardrails at
+`.claude/INVARIANTS.md`. Reading either as a contract would promote somebody's
+sentences to axioms, so three keys are required — `sidecar` (integer format
+version), `package` (must equal the host package's name, which catches a
+vendored copy), and `binds` (the versions the claims are asserted for).
+Optional: `export`, and `verified: ci`. Anything missing means the file is
+prose: `isSidecar(text)` answers that without throwing, and `parseSidecar`
+throws a located error naming what is absent.
+
+```js
+import {isSidecar, parseSidecar} from 'invariants-sidecar';
+
+if (isSidecar(text)) parseSidecar(text); // otherwise it is prose — skip it
+```
+
+`resolveSidecar` does the whole lookup for an installed package: the manifest's
+`invariants` key first, then a root `INVARIANTS.md`. It takes a reader rather
+than importing `node:fs`, so `src/` stays runtime-agnostic:
+
+```js
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {resolveSidecar} from 'invariants-sidecar/resolve.js';
+
+const found = resolveSidecar(rel => readFileSync(join(packageDir, rel), 'utf8'));
+// null            — the package has no sidecar
+// {path, skipped} — a candidate existed and was refused, with the reason
+// {sidecar, via, binds, stale, verified, …} — a real one
+```
+
+`stale` is `true` when `binds` excludes the installed version: still a real
+sidecar, but its claims drop to context and stop being ingestible. `verified`
+is `frontmatter.verified === 'ci'` — the only value that clears
+`oracleInputsFromSidecar`, which otherwise returns nothing and sets
+`unverified: true`, because an unverified sidecar is a proposal rather than
+provenance (the GHC-RULES lesson). `compileChecks(sidecar)` is the explicit
 trust step (compiles, still doesn't invoke); `lawTestsFromSidecar` bridges
 a Laws section (`- implements:` + custom `law:` checks) to the static-land
 law suite.

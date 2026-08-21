@@ -1,4 +1,5 @@
 ---
+sidecar: 1
 package: maybe-fixture
 binds: ^0.0.1
 export: 'Maybe: static-land module'

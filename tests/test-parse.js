@@ -67,20 +67,28 @@ test('checks compile without running', t => {
 test('parse errors are loud and located', t => {
   t.throws(() => parseSidecar('no frontmatter'), /expected frontmatter/);
   t.throws(
-    () => parseSidecar('---\npackage: x\n---\n# f\n\n## Preconditions\n\n- unnamed claim: text'),
+    () =>
+      parseSidecar(
+        '---\nsidecar: 1\npackage: x\nbinds: ^1.0.0\n---\n# f\n\n## Preconditions\n\n- unnamed claim: text'
+      ),
     /backticked/
   );
   t.throws(
     () =>
-      parseSidecar('---\npackage: x\n---\n# f\n\n## Preconditions\n\n- `p` (total) — scoped: text'),
+      parseSidecar(
+        '---\nsidecar: 1\npackage: x\nbinds: ^1.0.0\n---\n# f\n\n## Preconditions\n\n- `p` (total) — scoped: text'
+      ),
     /claim head must close/
   );
   t.throws(
     () =>
       parseSidecar(
-        '---\npackage: x\n---\n# f\n\n## Preconditions\n\n```js check pre:ghost\n() => true\n```'
+        '---\nsidecar: 1\npackage: x\nbinds: ^1.0.0\n---\n# f\n\n## Preconditions\n\n```js check pre:ghost\n() => true\n```'
       ),
     /unknown claim pre:ghost/
   );
-  t.throws(() => parseSidecar('---\npackage: x\n---\n# f\n\n## Nonsense\n'), /unknown section/);
+  t.throws(
+    () => parseSidecar('---\nsidecar: 1\npackage: x\nbinds: ^1.0.0\n---\n# f\n\n## Nonsense\n'),
+    /unknown section/
+  );
 });

@@ -21,8 +21,24 @@ export interface Sidecar {
   implements?: string[];
 }
 
+/** The format version this parser implements (moonshot §6.6). */
+export const SIDECAR_VERSION: number;
+
+/** Read the frontmatter block alone. Never throws; null when there is none. */
+export function readFrontmatter(text: string): Record<string, string> | null;
+
+/** Every reason a frontmatter block fails to identify a sidecar, or [] when it
+ *  is one. Required: `sidecar` (integer version), `package`, `binds`. */
+export function sidecarProblems(frontmatter: Record<string, string> | null): string[];
+
+/** Whether this text is a sidecar at all. Never throws — the common case is a
+ *  prose `INVARIANTS.md`, which a consumer should skip in silence. */
+export function isSidecar(text: string): boolean;
+
 /**
- * Parse a sidecar markdown artifact (moonshot §6.5 format) to inert data.
- * Loud, located errors on malformed input; never evaluates check code.
+ * Parse a sidecar markdown artifact (moonshot §6.5 vocabulary, §6.6 format) to
+ * inert data. Loud, located errors on malformed input — including frontmatter
+ * that does not identify a sidecar; gate with `isSidecar` when the input may be
+ * prose. Never evaluates check code.
  */
 export function parseSidecar(text: string): Sidecar;

@@ -1,7 +1,9 @@
 ---
+sidecar: 1
 package: nano-binary-search
 binds: ^1.0.14
 export: 'binarySearch(sortedArray, lessFn, l = 0, r = sortedArray.length): number'
+verified: ci
 ---
 
 # binarySearch
