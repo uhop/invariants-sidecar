@@ -20,7 +20,8 @@ src/
 ├── compile.js       # compileCheck / compileChecks — the explicit trust step; lawTestsFromSidecar
 ├── guards.js        # guardsFromSidecar — pre: claims as tape-six-invariant call-site guards (subpath-only)
 └── oracle.js        # oracleInputsFromSidecar / instantiateAxioms / declareFromSidecar — apodictum wire shapes
-sidecars/            # real artifacts (nano-binary-search family) — data, not shipped code
+sidecars/            # frozen worked example (nano-binary-search's sibling exports only,
+                     # NOT a mirror of its shipped INVARIANTS.md) — data, not shipped code
 tests/               # tape-six suite; fixtures hold worked sidecar artifacts
 ```
 
@@ -45,6 +46,35 @@ Sidecar {frontmatter (raw strings), version (number), name, description,
   └─ oracleInputsFromSidecar — law: axiom blocks + effects: flags blocks
        └─ gated on `verified: ci`; otherwise {axioms: [], declares: [],
           unverified: true} — a proposal is not provenance
+```
+
+## Fixtures versus the shipped artifact
+
+`sidecars/nano-binary-search-family.md` is a **frozen worked example** covering
+that package's sibling exports only; `nano-binary-search`'s own
+`INVARIANTS.md` covers `binarySearch` as well, and the binarySearch half lives
+in `tests/fixtures/binary-search-sidecar.md`. Comparing the two by claim-name
+set makes the fixture look like a stale partial copy. It is not: the split is
+by scope, and the two agree on every shared claim except `effects:pure-queries`,
+which names one more export in the shipped file because its scope is wider.
+
+The fixture is deliberately kept rather than replaced by a read of the
+dependency. Parser and compiler tests assert exact claim counts, kinds and
+names, and those assertions exist to catch regressions here — pointing them at
+`node_modules` would make every nano release that adds a claim a failure in
+this suite, which is tracking a dependency's cadence rather than testing a
+parser.
+
+What the freedom to freeze costs is a drift surface, so
+`tests/test-installed-sidecar.js` closes it from the other side: it reads the
+real artifact out of `node_modules/nano-binary-search/`, asserts the
+integration structurally (resolves via the manifest key, verified, not stale, a
+known format version, checks compile, oracle inputs non-empty), and asserts
+that every claim the fixture shares with the shipped file still says the same
+thing. Structural on purpose — a nano release that adds a claim must not fail
+this suite; one that drops, breaks, or unverifies the sidecar must.
+
+```
        └─ instantiateAxioms / declareFromSidecar → apodictum query inputs
 ```
 
