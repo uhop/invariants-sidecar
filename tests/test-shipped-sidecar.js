@@ -4,6 +4,7 @@ import test from 'tape-six';
 import {parseSidecar, SIDECAR_VERSION} from '../src/parse.js';
 import {compileChecks} from '../src/compile.js';
 import {resolveSidecar} from '../src/resolve.js';
+import {oracleInputsFromSidecar} from '../src/oracle.js';
 
 // nano-binary-search 1.2.0 is the first package on npm shipping a sidecar, so
 // the copy under `sidecars/` is pinned against the real artifact here instead
@@ -46,6 +47,33 @@ test('the shipped claims compile', t => {
   t.ok(Object.keys(checks).length > 0, 'the artifact carries executable checks');
   for (const [name, fn] of Object.entries(checks))
     t.equal(typeof fn, 'function', `${name} compiled to a callable`);
+});
+
+// The end the whole chain exists for: a real dependency's claims arriving as
+// oracle inputs rather than as prose an analyst retypes. Counts stay loose —
+// a nano release that adds a law must not fail this — but the gate being open
+// and the provenance being version-stamped are the properties that matter.
+test('the shipped claims reach the oracle bridge as ingestible inputs', t => {
+  const inputs = oracleInputsFromSidecar(resolved.sidecar);
+  t.notOk(inputs.unverified, '`verified: ci` opened the ingestion gate');
+  t.ok(inputs.axioms.length > 0, 'at least one `law:` axiom block');
+  t.ok(inputs.declares.length > 0, 'at least one `effects:` flags block');
+  for (const axiom of inputs.axioms)
+    t.ok(
+      /@\^?\d+\.\d+\.\d+ sidecar$/.test(axiom.source),
+      `${axiom.name} cites a version-stamped source: ${axiom.source}`
+    );
+});
+
+test('stripping `verified: ci` closes the gate on the same artifact', t => {
+  const unverified = parseSidecar(read('INVARIANTS.md').replace(/^verified: ci\n/m, ''));
+  const inputs = oracleInputsFromSidecar(unverified);
+  t.equal(inputs.unverified, true, 'marked, so an empty result is not read as "asserts nothing"');
+  t.deepEqual(inputs.axioms, [], 'nothing ingestible');
+  t.ok(
+    oracleInputsFromSidecar(unverified, {allowUnverified: true}).axioms.length > 0,
+    'still readable as a proposal on request'
+  );
 });
 
 test('every claim in the family copy is the shipped claim', t => {

@@ -66,13 +66,19 @@ this suite, which is tracking a dependency's cadence rather than testing a
 parser.
 
 What the freedom to freeze costs is a drift surface, so
-`tests/test-installed-sidecar.js` closes it from the other side: it reads the
+`tests/test-shipped-sidecar.js` closes it from the other side: it reads the
 real artifact out of `node_modules/nano-binary-search/`, asserts the
 integration structurally (resolves via the manifest key, verified, not stale, a
-known format version, checks compile, oracle inputs non-empty), and asserts
-that every claim the fixture shares with the shipped file still says the same
-thing. Structural on purpose — a nano release that adds a claim must not fail
-this suite; one that drops, breaks, or unverifies the sidecar must.
+known format version, checks compile, oracle inputs ingestible with
+version-stamped provenance), and pins every claim the fixture shares with the
+shipped file — `SCOPED` names the ones that differ by design, and anything else
+that moves is drift. Structural on purpose — a nano release that adds a claim
+must not fail this suite; one that drops, breaks, or unverifies the sidecar
+must.
+
+`tests/fixtures/binary-search-sidecar.md` is deliberately not pinned that way:
+it is frozen at an older `binds` and claim-naming generation, which is what
+keeps the parser tests independent of what the dependency currently ships.
 
 ```
        └─ instantiateAxioms / declareFromSidecar → apodictum query inputs
