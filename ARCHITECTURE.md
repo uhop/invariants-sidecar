@@ -35,7 +35,8 @@ sidecar markdown (moonshot §6.5 vocabulary, §6.6 format)
   │  isSidecar — frontmatter `sidecar`/`package`/`binds`, never throws
   │  parseSidecar — loud, located errors; checks stay inert source
   ▼
-Sidecar {frontmatter, name, description, claims[], implements?}
+Sidecar {frontmatter (raw strings), version (number), name, description,
+         claims[], implements?}
   ├─ compileChecks       — explicit trust step: compiles, still doesn't invoke
   │    └─ checks['kind:name'] used inside t.prop properties
   │    └─ lawTestsFromSidecar(sidecar, module, opts)

@@ -199,6 +199,9 @@ suite-pinned.
 
 ## Release notes
 
+- **0.2.0** — `parseSidecar(text).version` gives the format version as a number, so it
+  compares against `SIDECAR_VERSION` (frontmatter values stay raw strings), plus
+  `repository` / `homepage` / `bugs` links on the npm page.
 - **0.1.0** — Sidecar discovery for an installed package (`resolveSidecar`), a strict frontmatter
   discriminator so a prose `INVARIANTS.md` is never read as a contract (`isSidecar`), oracle ingestion
   gated on `verified: ci`, and a linear-time parser (two ReDoS fixes).

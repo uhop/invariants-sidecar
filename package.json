@@ -1,6 +1,6 @@
 {
   "name": "invariants-sidecar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Library-declared invariants as verified data: the static-land core — a dictionary completer and a law/consistency property-test generator.",
   "type": "module",
   "main": "index.js",

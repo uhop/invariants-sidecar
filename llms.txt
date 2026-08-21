@@ -42,7 +42,7 @@ const checks = compileChecks(sidecar); // explicit trust step — compiles, does
 // checks['pre:partitioned'](...) / checks['post:partition-point'](...) inside t.prop properties
 ```
 
-Frontmatter is strict and is the only discriminator: `sidecar` (integer format version), `package` (must equal the host package's name), `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose and for agent guardrails, so a file without those keys is prose, not a contract.
+Frontmatter is strict and is the only discriminator: `sidecar` (format version, an integer in the file; read it back as the number `parseSidecar(text).version`, since frontmatter values are raw strings), `package` (must equal the host package's name), `binds` (versions the claims are asserted for) are required; `export` and `verified: ci` are optional. `INVARIANTS.md` is widely used for human prose and for agent guardrails, so a file without those keys is prose, not a contract.
 
 ## API surface (all named exports)
 
