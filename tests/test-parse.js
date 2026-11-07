@@ -1,10 +1,18 @@
 import {readFileSync} from 'node:fs';
 import test from 'tape-six';
 
-import {parseSidecar} from '../src/parse.js';
+import {isSidecar, parseSidecar, readFrontmatter} from '../src/parse.js';
 import {compileChecks} from '../src/compile.js';
 
 const text = readFileSync(new URL('./fixtures/binary-search-sidecar.md', import.meta.url), 'utf8');
+
+test('a sidecar with CRLF line endings reads as its LF form', t => {
+  const lf = text.replace(/\r\n/g, '\n');
+  const crlf = lf.replace(/\n/g, '\r\n');
+  t.ok(isSidecar(crlf));
+  t.deepEqual(readFrontmatter(crlf), readFrontmatter(lf));
+  t.deepEqual(parseSidecar(crlf), parseSidecar(lf));
+});
 
 test('the worked artifact parses: frontmatter, name, description', t => {
   const s = parseSidecar(text);

@@ -45,8 +45,11 @@ const fail = (message, line) => {
 // Reads the frontmatter block alone, and never throws: the answer to "is this
 // a sidecar at all" must not be an exception, because the common case is a
 // prose INVARIANTS.md that a consumer should skip in silence.
+// A sidecar written or checked out on Windows ends its lines in CRLF.
+const EOL = /\r?\n/;
+
 export const readFrontmatter = text => {
-  const lines = String(text ?? '').split('\n');
+  const lines = String(text ?? '').split(EOL);
   if (lines[0] !== '---') return null;
   const frontmatter = {};
   let i = 1;
@@ -80,7 +83,7 @@ export const sidecarProblems = frontmatter => {
 export const isSidecar = text => sidecarProblems(readFrontmatter(text)).length === 0;
 
 export const parseSidecar = text => {
-  const lines = text.split('\n');
+  const lines = text.split(EOL);
   let i = 0;
 
   const frontmatter = {};
